@@ -4,44 +4,7 @@
  * Description: A plugin to demonstrate running a task via AJAX.
  */
 
-// 1. Create the Shortcode to display the button and results
-add_shortcode( 'my_task_page', 'my_task_page_shortcode' );
-function my_task_page_shortcode() {
-    
-    // Check the saved status of our task
-    $task_status = get_option( 'my_task_status', 'pending' );
-    $task_results = get_option( 'my_task_results', '' );
-
-    // Prepare styles based on status
-    $run_btn_style  = ( $task_status == 'pending' ) ? 'display: inline-block;' : 'display: none;';
-    $show_btn_style = ( $task_status == 'complete' ) ? 'display: inline-block;' : 'display: none;';
-
-    // Buffer output
-    ob_start();
-    ?>
-
-    <div class="task-runner-wrapper">
-        <button id="run-task-btn" class="button button-primary" style="<?php echo esc_attr( $run_btn_style ); ?>">
-            Run Scheduled Task
-        </button>
-
-        <button id="show-results-btn" class="button" style="<?php echo esc_attr( $show_btn_style ); ?>">
-            Show Task Results
-        </button>
-
-        <div id="task-status-message" style="margin-top: 15px;"></div>
-
-        <div id="task-results-container" style="display: none; margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9;">
-            <h4>Task Results:</h4>
-            <pre><?php echo esc_html( $task_results ); ?></pre>
-        </div>
-    </div>
-
-    <?php
-    return ob_get_clean();
-}
-
-// 2. Load and "localize" our JavaScript file
+// Load and "localize" our JavaScript file
 add_action( 'wp_enqueue_scripts', 'my_task_enqueue_scripts' );
 function my_task_enqueue_scripts() {
     
@@ -71,34 +34,6 @@ function my_task_enqueue_scripts() {
     }
 }
 
-// 3. The AJAX handler - THIS IS YOUR TASK
-add_action( 'wp_ajax_run_my_task', 'my_task_ajax_handler' );
-function my_task_ajax_handler() {
-    
-    // 1. SECURITY: Check the nonce
-    check_ajax_referer( 'my_task_nonce', 'security' );
-
-    // 2. --- YOUR ACTUAL TASK GOES HERE ---
-    // Simulate a long-running task (e.g., API call, data processing)
-    sleep( 3 ); // Simulate 3 seconds of work
-    
-    // Generate some results
-    $results = "Task completed successfully on: " . date('Y-m-d H:i:s') . "\n";
-    $results .= "Processed 125 items.\n";
-    $results .= "Report generated.";
-    // --- END OF YOUR TASK ---
-
-
-    // 3. SAVE: Store the state and results in the database
-    update_option( 'my_task_status', 'complete' );
-    update_option( 'my_task_results', $results );
-
-    // 4. RESPOND: Send a success message and the results back to JavaScript
-    wp_send_json_success( array(
-        'message' => 'Task is complete!',
-        'results' => $results
-    ) );
-}
 function my_task_reset_handler() {
     check_ajax_referer( 'my_task_nonce', 'security' );
     
@@ -208,6 +143,7 @@ function my_task_schedule_handler() {
     
     wp_send_json_success( array( 'message' => 'Task has been scheduled! It is now running in the background.' ) );
 }
+add_shortcode( 'my_task_page', 'my_task_page_shortcode' );
 function my_task_page_shortcode( $atts ) {
     
     // --- NEW: Process shortcode attributes ---
